@@ -1,5 +1,8 @@
+using CityInfo.API.Data;
+using CityInfo.API.Repositories;
 using CityInfo.API.Services;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace CityInfo.API
@@ -32,13 +35,16 @@ namespace CityInfo.API
 
             #if DEBUG
                 builder.Services.AddTransient<IMailService, LocalMailService>();
-            #else
+#else
                 builder.Services.AddTransient<IMailService, CloudMailService>();
 #endif
-
+            builder.Services.AddDbContext<CityContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("city_conn"));
+            });
             builder.Services.AddSingleton<CityDataStore>();
             builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
-
+            builder.Services.AddScoped<ICityInfoRepository, CityInfoRepository>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
