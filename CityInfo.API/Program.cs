@@ -26,7 +26,7 @@ namespace CityInfo.API
             builder.Services.AddControllers(options =>
             {
                 options.ReturnHttpNotAcceptable = true;
-            })
+            }).AddNewtonsoftJson()
               .AddXmlDataContractSerializerFormatters();
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -45,6 +45,9 @@ namespace CityInfo.API
             builder.Services.AddSingleton<CityDataStore>();
             builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
             builder.Services.AddScoped<ICityInfoRepository, CityInfoRepository>();
+
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

@@ -1,6 +1,13 @@
-﻿using CityInfo.API.Models;
+﻿using AutoMapper;
+using CityInfo.API.DTOs;
+using CityInfo.API.Models;
+using CityInfo.API.Repositories;
+using CityInfo.API.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
+using System.Text.Json;
+using System.Xml.Linq;
 
 namespace CityInfo.API.Controllers
 {
@@ -8,26 +15,45 @@ namespace CityInfo.API.Controllers
     [ApiController]
     public class CitiesController : ControllerBase
     {
-        private readonly CityDataStore cityDataStore;
-        public CitiesController(CityDataStore cityDataStore)
+        private readonly ICityInfoRepository cityInfoRepository;
+        private readonly IMapper mapper;
+        const int MAX_PAGE_SIZE = 20;
+        const int MIN_PAGE_SIZE = 1;
+        public CitiesController(ICityInfoRepository cityInfoRepository, IMapper mapper)
         {
-            this.cityDataStore = cityDataStore ?? throw new ArgumentNullException(nameof(cityDataStore));
+            this.cityInfoRepository = cityInfoRepository ?? throw new ArgumentNullException(nameof(cityInfoRepository));
+            this.mapper = mapper;
         }
-
-        public CityDataStore CityDataStore { get; }
 
         [HttpGet]
-        public IActionResult GetCities()
+        public async Task<IActionResult> GetCities(string? name, 
+                    string? searchQuery,
+                    int pageNumber = 1, int pageSize = 10)
         {
-            var cities = cityDataStore.Cities;
-            return cities.Count == 0 ? NotFound() : Ok(cityDataStore.Cities);
-        }
+            if (pageSize > MAX_PAGE_SIZE) { pageSize = MAX_PAGE_SIZE; }
+            if (pageSize < MIN_PAGE_SIZE) { pageSize = MIN_PAGE_SIZE; }
 
+            var (cities, paginatioMetaData) = await cityInfoRepository.GetCitiesAsync(name, 
+                                                                                      searchQuery, 
+                                                                                      pageNumber, 
+                                                                                      pageSize);
+
+
+            if (cities.Count() == 0) return NotFound();
+
+            Response.Headers.Add("x-Pagination", JsonSerializer.Serialize(paginatioMetaData));
+
+            return Ok(mapper.Map<IEnumerable<CityDTO>>(cities));
+        }
+        
+        
         [HttpGet("{id}")]
-        public IActionResult GetCity(int id) 
+        public async Task<IActionResult> GetCity(int id, bool includePointOfInterest = false) 
         {
-            var city = cityDataStore.Cities.FirstOrDefault(c => c.Id == id);
-            return city is null? NotFound() : Ok(city);
+            var city = await cityInfoRepository.GetCityAsync(id, includePointOfInterest); 
+            if(city == null) return NotFound();
+            if (includePointOfInterest) return Ok(mapper.Map<CityWithPointOfInterestDTO>(city));
+            return Ok(mapper.Map<CityDTO>(city));
         }
 
         
