@@ -45,7 +45,7 @@ namespace CityInfo.API
             builder.Services.AddSingleton<CityDataStore>();
             builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
             builder.Services.AddScoped<ICityInfoRepository, CityInfoRepository>();
-
+            
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             var app = builder.Build();
