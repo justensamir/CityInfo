@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,6 +10,7 @@ namespace CityInfo.API.Controllers
 {
     [Route("api/authentication")]
     [ApiController]
+    
     public class AuthenticationController : ControllerBase
     {
         private readonly IConfiguration configuration;
@@ -27,14 +29,16 @@ namespace CityInfo.API.Controllers
             public string FirstName { get; set; }
             public string LastName { get; set; }
             public string City { get; set; }
+            public string Role { get; set; }
 
-            public CityUserInfo(int userId, string username, string firstName, string lastName, string city)
+            public CityUserInfo(int userId, string username, string firstName, string lastName, string city, string role)
             {
                 UserId = userId;
                 Username = username;
                 FirstName = firstName;
                 LastName = lastName;
                 City = city;
+                Role = role;
             }
         }
 
@@ -69,6 +73,7 @@ namespace CityInfo.API.Controllers
             claimsForToken.Add(new Claim("given_name", user.FirstName));
             claimsForToken.Add(new Claim("family_name", user.LastName));
             claimsForToken.Add(new Claim("city", user.City));
+            claimsForToken.Add(new Claim("role", user.Role));
 
             // Step 2.4 create token
             var jwtSecurityToken = new JwtSecurityToken(
@@ -93,7 +98,8 @@ namespace CityInfo.API.Controllers
                 username ?? "",
                 "Mohamed",
                 "Samir",
-                "Cairo"
+                "Cairo",
+                "Owner"
             );
 
         }

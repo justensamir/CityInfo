@@ -2,6 +2,7 @@
 using CityInfo.API.DTOs;
 using CityInfo.API.Models;
 using CityInfo.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -10,8 +11,10 @@ using System.Text.Json;
 
 namespace CityInfo.API.Controllers
 {
-    [Route("api/cities/{cityId}/pointsofinterest")]
+    [Route("api/v{version:apiVersion}/cities/{cityId}/pointsofinterest")]
     [ApiController]
+    [ApiVersion("2.0")]
+    //[Authorize]
     public class PointsOfInterestController : ControllerBase
     {
         private readonly ILogger<PointsOfInterestController> logger;
@@ -29,13 +32,22 @@ namespace CityInfo.API.Controllers
             this.cityInfoRepository = cityInfoRepository ?? throw new ArgumentNullException(nameof(this.cityInfoRepository));
             this.mapper = mapper;
         }
-
+        /// <summary>
+        /// Get Points Of Interest by City Id
+        /// </summary>
+        /// <param name="cityId">The id of the city to get its points of interest</param>
+        /// <returns>An IActionResult</returns>
         [HttpGet]
         public async Task<IActionResult> GetPointsOfInterest(int cityId)
         {
-            var city = await cityInfoRepository.IsCityExistsAsync(cityId);
+            //var cityName = User.Claims.FirstOrDefault(c => c.Type == "city");
+
+            //if(!await cityInfoRepository.IsCityNameMatchesCityId(cityName?.Value, cityId))
+            //{
+            //    return Forbid();
+            //}
             
-            if (!city) 
+            if (!await cityInfoRepository.IsCityExistsAsync(cityId)) 
             {
                 logger.LogInformation($"City with id ({cityId}) wasn't found when accessing Point of interest");
                 return NotFound(); 
@@ -48,6 +60,7 @@ namespace CityInfo.API.Controllers
         }
 
         [HttpGet("{pointOfInterestId}", Name = "GetPointOfInterest")]
+        //[Authorize(Policy = "MustBeFromCairo")]
         public async Task<IActionResult> GetPointOfInterest(int cityId, int pointOfInterestId)
         {
             var city = await cityInfoRepository.IsCityExistsAsync(cityId);

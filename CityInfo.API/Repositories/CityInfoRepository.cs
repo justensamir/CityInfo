@@ -93,5 +93,9 @@ namespace CityInfo.API.Repositories
             return (collectionToReturn, paginationMetaData);
         }
 
+        public async Task<bool> IsCityNameMatchesCityId(string? cityName, int cityId)
+        {
+            return await context.Cities.AnyAsync(c => c.Name == cityName && c.Id == cityId);
+        }
     }
 }

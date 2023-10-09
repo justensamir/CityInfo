@@ -3,6 +3,7 @@ using CityInfo.API.DTOs;
 using CityInfo.API.Models;
 using CityInfo.API.Repositories;
 using CityInfo.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
@@ -11,8 +12,11 @@ using System.Xml.Linq;
 
 namespace CityInfo.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
+    //[Authorize]
     public class CitiesController : ControllerBase
     {
         private readonly ICityInfoRepository cityInfoRepository;
@@ -48,6 +52,11 @@ namespace CityInfo.API.Controllers
         
         
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+
         public async Task<IActionResult> GetCity(int id, bool includePointOfInterest = false) 
         {
             var city = await cityInfoRepository.GetCityAsync(id, includePointOfInterest); 
